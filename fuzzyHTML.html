@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H1D024023-SISTEM_FUZZY</title>
+    <link rel="stylesheet" href="fuzzyCSS.css">
+</head>
+<body>
+    <canvas id="starfield"></canvas>
+
+    <div class="app-wrapper">
+        <header>
+            <div class="header-badge">⬡ SISTEM FUZZY — METODE MAMDANI ⬡</div>
+            <h1>ANALISA POLUSI CAHAYA</h1>
+            <p class="header-sub">SISTEM FUZZY · PENGUKUR TINGKAT POLUSI CAHAYA</p>
+            <div class="header-line"></div>
+        </header>
+
+        <div class="main-grid">
+
+            <!-- PANEL 1: INPUT -->
+            <div class="panel">
+            <div class="panel-header">
+                <div class="panel-icon">⚡</div>
+                <span class="panel-title">Variabel Antecedent (Input)</span>
+            </div>
+                <div class="panel-body">
+
+                    <!-- VAR 1: SQM -->
+                    <div class="var-block">
+                        <div class="var-label">
+                            <span class="var-name">1. Kecerahan Langit (SQM)</span>
+                            <span class="var-value"><span id="sqm-val">18.5</span><span class="var-unit"> mag/arcsec²</span></span>
+                        </div>
+                        <div class="slider-wrap">
+                            <input type="range" id="sqm-slider" min="150" max="220" value="185" step="1">
+                        </div>
+                        <div class="mf-canvas-wrap">
+                            <canvas id="mf-sqm" height="55"></canvas>
+                        </div>
+                        <div class="mf-legend">
+                            <div class="mf-leg-item"><div class="mf-leg-dot" style="background:#ff6b6b"></div>Rendah (Cerah)</div>
+                            <div class="mf-leg-item"><div class="mf-leg-dot" style="background:#ffd93d"></div>Sedang</div>
+                            <div class="mf-leg-item"><div class="mf-leg-dot" style="background:#6bcb77"></div>Tinggi (Gelap)</div>
+                        </div>
+                    </div>
+
+                    <!-- VAR 2: DISTANCE -->
+                    <div class="var-block">
+                        <div class="var-label">
+                            <span class="var-name">2. Jarak dari Pusat Kota</span>
+                            <span class="var-value"><span id="dist-val">30</span><span class="var-unit"> km</span></span>
+                        </div>
+                        <div class="slider-wrap">
+                            <input type="range" id="dist-slider" min="0" max="100" value="30" step="1">
+                        </div>
+                        <div class="mf-canvas-wrap">
+                            <canvas id="mf-dist" height="55"></canvas>
+                        </div>
+                        <div class="mf-legend">
+                            <div class="mf-leg-item"><div class="mf-leg-dot" style="background:#ff6b6b"></div>Dekat</div>
+                            <div class="mf-leg-item"><div class="mf-leg-dot" style="background:#ffd93d"></div>Sedang</div>
+                            <div class="mf-leg-item"><div class="mf-leg-dot" style="background:#6bcb77"></div>Jauh</div>
+                        </div>
+                    </div>
+
+                    <!-- VAR 3: DENSITY -->
+                    <div class="var-block">
+                        <div class="var-label">
+                            <span class="var-name">3. Kepadatan Lampu Buatan</span>
+                            <span class="var-value"><span id="dens-val">400</span><span class="var-unit"> lux</span></span>
+                        </div>
+                        <div class="slider-wrap">
+                            <input type="range" id="dens-slider" min="0" max="1000" value="400" step="5">
+                        </div>
+                        <div class="mf-canvas-wrap">
+                            <canvas id="mf-dens" height="55"></canvas>
+                        </div>
+                        <div class="mf-legend">
+                            <div class="mf-leg-item"><div class="mf-leg-dot" style="background:#6bcb77"></div>Rendah</div>
+                            <div class="mf-leg-item"><div class="mf-leg-dot" style="background:#ffd93d"></div>Sedang</div>
+                            <div class="mf-leg-item"><div class="mf-leg-dot" style="background:#ff6b6b"></div>Tinggi</div>
+                        </div>
+                    </div>
+
+                </div><!-- /panel-body -->
+            </div><!-- /panel 1 -->
+
+
+            <!-- PANEL 2: RULES -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-icon">⚙</div>
+                    <span class="panel-title">Basis Aturan (Rule Base)</span>
+                </div>
+                <div class="panel-body">
+                    <div class="rules-list" id="rules-container"></div>
+                </div>
+            </div>
+
+
+            <!-- PANEL 3: OUTPUT -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-icon">◎</div>
+                    <span class="panel-title">Variabel Consequent (Output)</span>
+                </div>
+                <div class="panel-body">
+
+                    <div class="output-gauge-wrap">
+                        <canvas id="gauge-canvas" height="160"></canvas>
+                    </div>
+
+                    <div class="output-result-box">
+                        <div class="result-label">Tingkat Polusi Cahaya</div>
+                        <div class="result-value" id="result-value">--</div>
+                        <div class="result-class" id="result-class">Menghitung...</div>
+                    </div>
+
+                    <div class="bortle-section">
+                        <div class="bortle-label">▸ Estimasi Bortle Scale</div>
+                        <div class="bortle-bar" id="bortle-bar"></div>
+                    </div>
+
+                    <div class="sky-sim" style="margin-bottom:14px;">
+                        <canvas id="sky-canvas"></canvas>
+                        <span class="sky-label">SIMULASI LANGIT MALAM</span>
+                    </div>
+
+                    <div>
+                        <div class="bortle-label" style="margin-bottom:6px;">▸ Fungsi Keanggotaan Output</div>
+                        <div class="output-mf-wrap">
+                            <canvas id="mf-output" height="65"></canvas>
+                        </div>
+                        <div class="mf-legend" style="margin-top:5px;">
+                            <div class="mf-leg-item"><div class="mf-leg-dot" style="background:#4ecdc4"></div>Sgt Rendah</div>
+                            <div class="mf-leg-item"><div class="mf-leg-dot" style="background:#6bcb77"></div>Rendah</div>
+                            <div class="mf-leg-item"><div class="mf-leg-dot" style="background:#ffd93d"></div>Sedang</div>
+                            <div class="mf-leg-item"><div class="mf-leg-dot" style="background:#ff9f43"></div>Tinggi</div>
+                            <div class="mf-leg-item"><div class="mf-leg-dot" style="background:#ff6b6b"></div>Sgt Tinggi</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div><!-- /main-grid -->
+
+        <!-- INFO BAR -->
+        <div class="info-bar">
+            <div class="info-card">
+                <div class="info-card-label">Rules Aktif</div>
+                <div class="info-card-value" id="active-count">0</div>
+                <div class="info-card-sub">dari 27 total aturan</div>
+            </div>
+            <div class="info-card">
+                <div class="info-card-label">Metode Inferensi</div>
+                <div class="info-card-value" style="font-size:13px; letter-spacing:1px;">MAMDANI</div>
+                <div class="info-card-sub">MIN operator · MAX aggregation</div>
+            </div>
+            <div class="info-card">
+                <div class="info-card-label">Defuzzifikasi</div>
+                <div class="info-card-value" style="font-size:13px; letter-spacing:1px;">CENTROID</div>
+                <div class="info-card-sub">Center of Gravity (CoG)</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            [ SISTEM FUZZY · POLUSI CAHAYA ] &nbsp;|&nbsp; MAMDANI INFERENCE ENGINE &nbsp;|&nbsp; 3 ANTECEDENT · 1 CONSEQUENT · 12 RULES
+        </div>
+    </div>
+
+    <script src="fuzzyJS.js"></script>
+</body>
+</html>
